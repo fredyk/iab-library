@@ -1,13 +1,12 @@
 package com.txstockdata.iab_library;
 
+import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Bundle;
 
 
 import com.jhonfredy.connectionlib.event.BasicEvent;
 import com.jhonfredy.connectionlib.event.Event;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
@@ -21,7 +20,7 @@ public interface IapRequiredOps {
 
     void validateToken(String token, Event<JSONObject> basicEvent);
 
-    UIErrorHandlerHelper getPresenterUIHelper();
+    UIErrorHandler getPresenterUIHelper();
 
     String getStringErrorNoPlayServices();
 
@@ -36,6 +35,16 @@ public interface IapRequiredOps {
     String getPurchaseTokenFromPrefs();
 
     boolean isSubscriptionsAvailable();
+
+    void logToFirebase(String event, String s);
+
+    void logEventPurchaseSku(String sku);
+
+    void restartApp();
+
+    String getLanguage(Context context);
+
+    void setCustomLanguage();
 
 
 //    void alertException(String code, String message, JSONException e);

@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * © 2016 Jhon Fredy Magdalena Vila
  */
-public interface UIErrorHandlerHelper {
+public interface UIErrorHandler {
     public abstract void showAlertError(String tittle, String message, DialogInterface.OnClickListener button2Listener);
 
     public abstract void showAlertError(String tittle, String message, String button1Text, DialogInterface.OnClickListener button1Listener, DialogInterface.OnClickListener button2Listener);
