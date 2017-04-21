@@ -18,6 +18,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static com.example.android.trivialdrivesample.util.IabHelper.ITEM_TYPE_INAPP;
@@ -61,13 +62,12 @@ public class IapHelper {
     }
 
     public void tryPurchaseItem(IapActivity iapActivity, String sku, IabHelper.OnIabPurchaseFinishedListener listener, Intent data) throws IabHelper.IabAsyncInProgressException {
-        doSetupBilling(Arrays.asList(sku), iapActivity, this, iabHelper, new Function<Pair<Inventory, List<Purchase>>>() {
+        doSetupBilling(Collections.singletonList(sku), iapActivity, this, iabHelper, new Function<Pair<Inventory, List<Purchase>>>() {
             @Override
             public void call(Pair<Inventory, List<Purchase>> result) throws StockDataException {
                 if (result == null) {
                     Log.e(TAG, "Function<Pair<Inventory, List<Purchase>>>.call() called with: result = [" + null + "]");
                     listener.onIabPurchaseFinished(null, null, data);
-                    return;
                 } else {
 
                     try {
@@ -87,7 +87,7 @@ public class IapHelper {
                                         baseActivity.postPurchaseItem(data, signature, new BasicEvent<JSONObject>() {
                                             @Override
                                             public void onError(JSONObject jsonObject) {
-                                                baseActivity.getPresenterUIHelper().handleError(jsonObject);
+                                                baseActivity.getUIErrorHandler().handleError(jsonObject);
                                                 listener.onIabPurchaseFinished(result, null, originalIntent);
                                                 super.onError(jsonObject);
                                             }
@@ -99,13 +99,13 @@ public class IapHelper {
                                                         @Override
                                                         public void onConsumeFinished(Purchase purchase, IabResult result) {
                                                             Log.i(TAG, "Consumed " + purchase.getOrderId());
-                                                            baseActivity.getPresenterUIHelper().showAlertCorrect("Correcto", "Suscripción validada correctamente");
+                                                            baseActivity.getUIErrorHandler().showAlertCorrect("Correcto", "Suscripción validada correctamente");
                                                             listener.onIabPurchaseFinished(result, info, originalIntent);
                                                         }
                                                     });
                                                 } catch (IabHelper.IabAsyncInProgressException e) {
                                                     e.printStackTrace();
-                                                    iapActivity.getPresenterUIHelper().alertException(BILLING_ERROR, null, e, null, (dialog, which) -> {
+                                                    iapActivity.getUIErrorHandler().alertException(BILLING_ERROR, null, e, null, (dialog, which) -> {
 
                                                         listener.onIabPurchaseFinished(result, info, originalIntent);
                                                     });
@@ -130,11 +130,11 @@ public class IapHelper {
 
                                 } catch (StockDataException e) {
                                     e.printStackTrace();
-                                    iapActivity.getPresenterUIHelper().alertException(e.getCode(), e.getMessage(), e, e.getJsonObject(), null);
+                                    iapActivity.getUIErrorHandler().alertException(e.getCode(), e.getMessage(), e, e.getJsonObject(), null);
 
                                 } catch (JSONException e) {
                                     e.printStackTrace();
-                                    iapActivity.getPresenterUIHelper().alertException(null, null, e, null, null);
+                                    iapActivity.getUIErrorHandler().alertException(null, null, e, null, null);
 
                                 }
 
@@ -142,7 +142,7 @@ public class IapHelper {
                         }, data);
                     } catch (IabHelper.IabAsyncInProgressException e) {
                         e.printStackTrace();
-                        iapActivity.getPresenterUIHelper().alertException(null, null, e, null, null);
+                        iapActivity.getUIErrorHandler().alertException(null, null, e, null, null);
                     }
                 }
             }
@@ -158,7 +158,7 @@ public class IapHelper {
         iabHelper = new IabHelper(baseActivity, base64EncodedPublicKeyBilling) {
             @Override
             public void logException(IllegalArgumentException e) {
-                baseActivity.getPresenterUIHelper().logException(e);
+                baseActivity.getUIErrorHandler().logException(e);
             }
         };
 
@@ -202,13 +202,12 @@ public class IapHelper {
 
                     Log.i(TAG, "token\" is not null " + token);
 
-                    Pair<Inventory, List<Purchase>> finalPair = pair;
                     baseActivity.validateToken(token, new BasicEvent<JSONObject>() {
 
                         @Override
                         public void onError(JSONObject jsonObject) {
                             try {
-                                checkGoogleReceipt(finalPair.second, baseActivity, function);
+                                checkGoogleReceipt(pair.second, baseActivity, function);
                             } catch (StockDataException e) {
                                 e.printStackTrace();
                             }
@@ -222,7 +221,7 @@ public class IapHelper {
                                 super.onSuccess(jsonObject);
                             } catch (StockDataException e) {
                                 e.printStackTrace();
-                                baseActivity.getPresenterUIHelper().handleError(e);
+                                baseActivity.getUIErrorHandler().handleError(e);
                             } catch (JSONException e) {
                                 e.printStackTrace();
                                 onError(jsonObject);
@@ -272,100 +271,91 @@ public class IapHelper {
                         Looper.prepare();
 
                         try {
-                            iabHelper.queryInventoryAsync(true, null, skus, new IabHelper.QueryInventoryFinishedListener() {
+                            iabHelper.queryInventoryAsync(true, null, skus, (result1, inv) -> {
+                                Looper looper = Looper.myLooper();
 
-                                @Override
-                                public void onQueryInventoryFinished(IabResult result, final Inventory inv) {
-                                    Looper looper = Looper.myLooper();
+                                if (looper != null) {
+                                    Log.i(TAG, String.format("quit loop: %s", looper));
+                                    looper.quit();
+                                } else {
+                                    Log.i(TAG, String.format("null loop %s", "null"));
+                                }
 
-                                    if (looper != null) {
-                                        Log.i(TAG, String.format("quit loop: %s", looper));
-                                        looper.quit();
-                                    } else {
-                                        Log.i(TAG, String.format("null loop %s", "null"));
+                                Log.i(TAG, "onQueryInventoryFinished.result: " + result1.getMessage());
+                                if (inv == null) {
+                                    Log.e(TAG, "Inventory is null");
+                                    baseActivity.setSubscriptionsAvailable(false);
+                                    alertErrorNoPlayServices(baseActivity, function);
+                                    try {
+                                        function.call(null);
+                                    } catch (StockDataException e) {
+                                        e.printStackTrace();
                                     }
 
-                                    Log.i(TAG, "onQueryInventoryFinished.result: " + result.getMessage());
-                                    if (inv == null) {
-                                        Log.e(TAG, "Inventory is null");
-                                        baseActivity.setSubscriptionsAvailable(false);
-                                        alertErrorNoPlayServices(baseActivity, function);
+                                } else {
+
+                                    List<Purchase> purchases = new ArrayList<>();
+                                    for (String sku : skus) {
+
+                                        Log.i(TAG, "getSkuDetails: " + inv.getSkuDetails(sku));
+
+                                        boolean purchased = inv.hasPurchase(sku);
+                                        Log.i(TAG, "purchased " + sku + ": " + purchased);
+
+                                        Purchase purchase = inv.getPurchase(sku);
+                                        Log.i(TAG, String.format("purchase for sku: %s, %s", sku, purchase));
+                                        if (purchase != null) {
+                                            int purchaseState = purchase.getPurchaseState();
+                                            Log.i(TAG, String.format("purchaseState: %d", purchaseState));
+                                            purchases.add(purchase);
+
+                                        }
+                                    }
+
+                                    List<Purchase> purchases1 = new ArrayList<>();
+                                    for (Purchase purchase : purchases) {
+                                        if (purchase.getItemType().equals(ITEM_TYPE_INAPP))
+                                            purchases1.add(purchase);
+                                    }
+
+
+                                    if (!purchases1.isEmpty()) {
                                         try {
-                                            function.call(null);
+                                            iabHelper.consumeAsync(purchases1, (purchases2, results) -> {
+                                                Log.d(TAG, "onConsumeMultiFinished() called with: purchases2 = [" + purchases2 + "], results = [" + results + "]");
+                                                try {
+
+                                                    Log.i(TAG, "result message: " + result1.getMessage());
+
+                                                    function.call(new Pair<>(inv, purchases));
+
+
+                                                } catch (StockDataException e) {
+                                                    e.printStackTrace();
+                                                }
+                                            });
+                                        } catch (IabHelper.IabAsyncInProgressException e) {
+                                            e.printStackTrace();
+                                        }
+                                    } else {
+
+                                        try {
+
+                                            Log.i(TAG, "result message: " + result1.getMessage());
+
+                                            function.call(new Pair<>(inv, purchases));
+
+
                                         } catch (StockDataException e) {
                                             e.printStackTrace();
                                         }
-
-                                    } else {
-
-                                        List<Purchase> purchases = new ArrayList<>();
-                                        for (String sku : skus) {
-
-                                            Log.i(TAG, "getSkuDetails: " + inv.getSkuDetails(sku));
-
-                                            boolean purchased = inv.hasPurchase(sku);
-                                            Log.i(TAG, "purchased " + sku + ": " + purchased);
-
-                                            Purchase purchase = inv.getPurchase(sku);
-                                            Log.i(TAG, String.format("purchase for sku: %s, %s", sku, purchase));
-                                            if (purchase != null) {
-                                                int purchaseState = purchase.getPurchaseState();
-                                                Log.i(TAG, String.format("purchaseState: %d", purchaseState));
-                                                purchases.add(purchase);
-
-                                            }
-                                        }
-
-                                        List<Purchase> purchases1 = new ArrayList<Purchase>();
-                                        for (Purchase purchase : purchases) {
-                                            if (purchase.getItemType().equals(ITEM_TYPE_INAPP))
-                                                purchases1.add(purchase);
-                                        }
-
-
-                                        if (!purchases1.isEmpty()) {
-                                            try {
-                                                iabHelper.consumeAsync(purchases1, new IabHelper.OnConsumeMultiFinishedListener() {
-                                                    @Override
-                                                    public void onConsumeMultiFinished(List<Purchase> purchases2, List<IabResult> results) {
-                                                        Log.d(TAG, "onConsumeMultiFinished() called with: purchases2 = [" + purchases2 + "], results = [" + results + "]");
-                                                        try {
-
-                                                            Log.i(TAG, "result message: " + result.getMessage());
-
-                                                            function.call(new Pair<>(inv, purchases));
-
-
-                                                        } catch (StockDataException e) {
-                                                            e.printStackTrace();
-                                                        }
-                                                    }
-                                                });
-                                            } catch (IabHelper.IabAsyncInProgressException e) {
-                                                e.printStackTrace();
-                                            }
-                                        } else {
-
-                                            try {
-
-                                                Log.i(TAG, "result message: " + result.getMessage());
-
-                                                function.call(new Pair<>(inv, purchases));
-
-
-                                            } catch (StockDataException e) {
-                                                e.printStackTrace();
-                                            }
-                                        }
                                     }
-
                                 }
-
 
                             });
                         } catch (IabHelper.IabAsyncInProgressException e) {
                             e.printStackTrace();
-                            baseActivity.getPresenterUIHelper().handleUnknownError(e);
+                            baseActivity.getUIErrorHandler().handleUnknownError(e);
 
                         }
 
@@ -376,7 +366,7 @@ public class IapHelper {
 
                 } catch (IllegalStateException e) {
                     e.printStackTrace();
-                    baseActivity.getPresenterUIHelper().handleUnknownError(e);
+                    baseActivity.getUIErrorHandler().handleUnknownError(e);
                 }
 
 
@@ -487,7 +477,7 @@ public class IapHelper {
     }
 
     private static <T> void alertErrorNoPlayServices(IapActivity baseActivity, Function<T> function) {
-        baseActivity.getPresenterUIHelper().showAlertError("Google Play Services", baseActivity.getStringErrorNoPlayServices(), (dialog, which) -> {
+        baseActivity.getUIErrorHandler().showAlertError("Google Play Services", baseActivity.getStringErrorNoPlayServices(), (dialog, which) -> {
             try {
                 if (function != null)
                     function.call(null);
@@ -506,71 +496,61 @@ public class IapHelper {
         }
 
 
-        iabHelper.launchSubscriptionPurchaseFlow(baseActivity, sku, requestCodeBuyCash, new IabHelper.OnIabPurchaseFinishedListener() {
-            @Override
-            public void onIabPurchaseFinished(IabResult result, Purchase info, Intent originalIntent) {
-                Log.i(TAG, "Purchase finished");
-                showBundleInfo(originalIntent.getExtras());
-                try {
-                    if (result.isSuccess()) {
-                        iabHelper.consumeAsync(info, new IabHelper.OnConsumeFinishedListener() {
-                            @Override
-                            public void onConsumeFinished(Purchase purchase, IabResult result) {
-                                Log.i(TAG, "Consumed " + purchase.getOrderId());
-                            }
-                        });
-                    } else {
-                        Log.i(TAG, "result: " + result + ", purchase: " + info);
-                    }
-                    if (info != null) {
-                        String originalJson = info.getOriginalJson();
-                        if (originalJson != null) {
-                            Bundle bundle = new Bundle();
-                            bundle.putString("orignalJson", originalJson);
+        iabHelper.launchSubscriptionPurchaseFlow(baseActivity, sku, requestCodeBuyCash, (result, info, originalIntent) -> {
+            Log.i(TAG, "Purchase finished");
+            showBundleInfo(originalIntent.getExtras());
+            try {
+                if (result.isSuccess()) {
+                    iabHelper.consumeAsync(info, (purchase, result1) -> Log.i(TAG, "Consumed " + purchase.getOrderId()));
+                } else {
+                    Log.i(TAG, "result: " + result + ", purchase: " + info);
+                }
+                if (info != null) {
+                    String originalJson = info.getOriginalJson();
+                    if (originalJson != null) {
+                        Bundle bundle = new Bundle();
+                        bundle.putString("orignalJson", originalJson);
 //                                                                        mPresenterHelper. logToFirebase(FirebaseEvent.EVENT_BUY_IAP, (me != null) ? (me.getUsername() != null) ? me.getUsername() : "" : "");
-//                            baseActivity .getPresenterUIHelper().logEvent(EventFeedback.EVENT_BUY_IAP);
+//                            baseActivity .getUIErrorHandler().logEvent(EventFeedback.EVENT_BUY_IAP);
 //                            try {
 //                                if (originalIntent.hasExtra(RESPONSE_INAPP_PURCHASE_DATA)) {
 //                                    JSONObject jsonObject = null;
 //                                    jsonObject = new JSONObject(originalIntent.getStringExtra(RESPONSE_INAPP_PURCHASE_DATA));
 //                                    if (jsonObject.has("orderId")) {
-                            baseActivity.getPresenterUIHelper().logEventBuyIap();
-                            baseActivity.getPresenterUIHelper().logEventPurchaseSku(sku);
+                        baseActivity.getUIErrorHandler().logEventBuyIap();
+                        baseActivity.getUIErrorHandler().logEventPurchaseSku(sku);
 //                                    }
 //                                }
 //                            } catch (JSONException e) {
 //                                e.printStackTrace();
-//                                baseActivity.getPresenterUIHelper().logEventBuyIap();
-//                                baseActivity.getPresenterUIHelper().logEventPurchaseSku(sku);
-//                                baseActivity.getPresenterUIHelper().alertException(null, null, e, null, null);
+//                                baseActivity.getUIErrorHandler().logEventBuyIap();
+//                                baseActivity.getUIErrorHandler().logEventPurchaseSku(sku);
+//                                baseActivity.getUIErrorHandler().alertException(null, null, e, null, null);
 //                            }
 
 //                            switch (sku) {
 //                                case SKU:
-//                                    baseActivity.getPresenterUIHelper().logEvent(EVENT_PURCHASED_SUBSCRIPTIONS_1_MONTH);
+//                                    baseActivity.getUIErrorHandler().logEvent(EVENT_PURCHASED_SUBSCRIPTIONS_1_MONTH);
 //                                    break;
 //                                case SKU2:
-//                                    getPresenterUIHelper().logEvent(EVENT_PURCHASED_SUBSCRIPTIONS_6_MONTHS);
+//                                    getUIErrorHandler().logEvent(EVENT_PURCHASED_SUBSCRIPTIONS_6_MONTHS);
 //                                    break;
 //                                case SKU3:
-//                                    getPresenterUIHelper().logEvent(EVENT_PURCHASED_SUBSCRIPTIONS_1_YEAR);
-////                                        getPresenterUIHelper().logEvent(EVENT_SHOW_SUBSCRIPTIONS_1_YEAR);
+//                                    getUIErrorHandler().logEvent(EVENT_PURCHASED_SUBSCRIPTIONS_1_YEAR);
+////                                        getUIErrorHandler().logEvent(EVENT_SHOW_SUBSCRIPTIONS_1_YEAR);
 //                                    break;
 //                            }
 
 
-                            if (function != null)
+                        if (function != null)
 //                                                                            function.call(bundle);
-                                function.call(originalIntent.getExtras());
-                        }
-
+                            function.call(originalIntent.getExtras());
                     }
-                } catch (IabHelper.IabAsyncInProgressException | StockDataException e) {
-                    e.printStackTrace();
+
                 }
+            } catch (IabHelper.IabAsyncInProgressException | StockDataException e) {
+                e.printStackTrace();
             }
-
-
         }, null);
     }
 
@@ -583,7 +563,7 @@ public class IapHelper {
             launchSubscriptionPurchaseFlow(iabHelper, baseActivity, sku, REQUEST_CODE_BILLING, bundle -> {
 
                 if (bundle == null) {
-                    baseActivity.getPresenterUIHelper().alertException(BILLING_ERROR, null, null, null, null);
+                    baseActivity.getUIErrorHandler().alertException(BILLING_ERROR, null, null, null, null);
 
                 } else {
 
@@ -594,13 +574,13 @@ public class IapHelper {
                         baseActivity.postPurchaseSubscription(data, signature, new BasicEvent<JSONObject>() {
                             @Override
                             public void onError(JSONObject jsonObject) {
-                                baseActivity.getPresenterUIHelper().handleError(jsonObject);
+                                baseActivity.getUIErrorHandler().handleError(jsonObject);
                                 super.onError(jsonObject);
                             }
 
                             @Override
                             public void onSuccess(JSONObject jsonObject) {
-                                baseActivity.getPresenterUIHelper().showAlertCorrect("Correcto", "Suscripción validada correctamente");
+                                baseActivity.getUIErrorHandler().showAlertCorrect("Correcto", "Suscripción validada correctamente");
                                 super.onSuccess(jsonObject);
                             }
 
@@ -616,7 +596,7 @@ public class IapHelper {
                         });
                     } catch (JSONException e) {
                         e.printStackTrace();
-                        baseActivity.getPresenterUIHelper().alertException(BILLING_ERROR, e.getMessage(), e, null, null);
+                        baseActivity.getUIErrorHandler().alertException(BILLING_ERROR, e.getMessage(), e, null, null);
 
                     }
 
@@ -626,8 +606,8 @@ public class IapHelper {
             });
         } catch (IabHelper.IabAsyncInProgressException e) {
             e.printStackTrace();
-//            baseActivity.getPresenterUIHelper().handleError(new TwibexException(Constants.UNKNOWN_ERROR, e.getMessage(), e));
-            baseActivity.getPresenterUIHelper().handleUnknownError(e);
+//            baseActivity.getUIErrorHandler().handleError(new TwibexException(Constants.UNKNOWN_ERROR, e.getMessage(), e));
+            baseActivity.getUIErrorHandler().handleUnknownError(e);
         }
     }
 
@@ -638,11 +618,9 @@ public class IapHelper {
 
     }
 
-    ;
-
 
 //    private static void alertErrorNoPlayServices() {
-//        getPresenterUIHelper().showAlertError("Google Play Services",
+//        getUIErrorHandler().showAlertError("Google Play Services",
 //                getBaseActivity().getString(R.string.string_google_play_services_not_available), (dialog, which) -> {
 //                    try {
 //                        if (function != null)
@@ -734,7 +712,7 @@ public class IapHelper {
                                 super.onSuccess(jsonObject);
                             } catch (StockDataException e) {
                                 e.printStackTrace();
-                                baseActivity.getPresenterUIHelper().handleError(e);
+                                baseActivity.getUIErrorHandler().handleError(e);
                             } catch (JSONException e) {
                                 e.printStackTrace();
                                 onError(jsonObject);
@@ -748,7 +726,7 @@ public class IapHelper {
                     });
                 } catch (JSONException e) {
                     e.printStackTrace();
-                    baseActivity.getPresenterUIHelper().alertException(BILLING_ERROR, e.getMessage(), e, null, null);
+                    baseActivity.getUIErrorHandler().alertException(BILLING_ERROR, e.getMessage(), e, null, null);
 
                 }
 

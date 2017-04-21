@@ -12,7 +12,7 @@ import org.json.JSONObject;
 /**
  * © 2016 Jhon Fredy Magdalena Vila
  */
-public interface IapRequiredOps {
+interface IapRequiredOps {
 
     boolean checkGooglePlaySevices();
 
@@ -20,7 +20,7 @@ public interface IapRequiredOps {
 
     void validateToken(String token, Event<JSONObject> basicEvent);
 
-    UIErrorHandler getPresenterUIHelper();
+    UIErrorHandler getUIErrorHandler();
 
     String getStringErrorNoPlayServices();
 
