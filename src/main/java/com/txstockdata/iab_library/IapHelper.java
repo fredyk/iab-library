@@ -27,7 +27,7 @@ import static com.example.android.trivialdrivesample.util.IabHelper.RESPONSE_INA
 import static com.jhonfredy.connectionlib.mstatic.Util.showBundleInfo;
 
 /**
- * © 2016 Jhon Fredy Magdalena Vila
+ * © 2017 Jhon Fredy Magdalena Vila
  */
 
 public class IapHelper {

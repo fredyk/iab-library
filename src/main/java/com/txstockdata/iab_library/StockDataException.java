@@ -5,7 +5,7 @@ import android.util.Log;
 import org.json.JSONObject;
 
 /**
- * © 2016 Jhon Fredy Magdalena Vila
+ * © 2017 Jhon Fredy Magdalena Vila
  */
 public abstract class StockDataException extends Throwable {
     public StockDataException(String message, Throwable cause) {

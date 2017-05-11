@@ -3,7 +3,7 @@ package com.txstockdata.iab_library;
 import org.json.JSONException;
 
 /**
- * © 2016 Jhon Fredy Magdalena Vila
+ * © 2017 Jhon Fredy Magdalena Vila
  */
 public class SkuDetails {
     private final String mSku;

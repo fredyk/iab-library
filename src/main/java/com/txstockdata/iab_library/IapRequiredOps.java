@@ -10,7 +10,7 @@ import com.jhonfredy.connectionlib.event.Event;
 import org.json.JSONObject;
 
 /**
- * © 2016 Jhon Fredy Magdalena Vila
+ * © 2017 Jhon Fredy Magdalena Vila
  */
 interface IapRequiredOps {
 

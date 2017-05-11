@@ -8,7 +8,7 @@ import static com.jhonfredy.connectionlib.mstatic.Util.showBundleInfo;
 import static com.txstockdata.iab_library.IapHelper.REQUEST_CODE_BILLING;
 
 /**
- * © 2016 Jhon Fredy Magdalena Vila
+ * © 2017 Jhon Fredy Magdalena Vila
  */
 
 public abstract class IapActivity extends AppCompatActivity

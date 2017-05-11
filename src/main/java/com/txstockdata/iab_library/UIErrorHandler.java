@@ -5,7 +5,7 @@ import android.content.DialogInterface;
 import org.json.JSONObject;
 
 /**
- * © 2016 Jhon Fredy Magdalena Vila
+ * © 2017 Jhon Fredy Magdalena Vila
  */
 public interface UIErrorHandler {
     void showAlertError(String tittle, String message, DialogInterface.OnClickListener button2Listener);
