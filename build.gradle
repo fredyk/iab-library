@@ -51,5 +51,7 @@ dependencies {
     compile project(':trivialdrivesample')
 
 //    configurations.compile.exclude module "trivialdrivesample"
+    compile 'io.reactivex:rxjava:1.2.1'
+
 
 }

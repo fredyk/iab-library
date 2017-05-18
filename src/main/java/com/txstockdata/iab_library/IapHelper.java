@@ -48,25 +48,25 @@ public class IapHelper {
 
     }
 
-    public void getPurchases(List<String> skus, Function<List<SkuDetails>> function) {
+    public void getPurchases(List<String> skus, rx.functions.Action1<List<SkuDetails>> function) {
         getPurchases(skus, baseActivity, this, iabHelper, function);
     }
 
-    public void validateSubscription(List<String> skus, Function<String> function) {
+    public void validateSubscription(List<String> skus, rx.functions.Action1<String> function) {
         if (function == null) function = IapHelper::self;
         validateSubscription(skus, baseActivity, this, iabHelper, function);
     }
 
-    public void trySubscription(String sku, @NonNull Function<Bundle> function) {
+    public void trySubscription(String sku, @NonNull rx.functions.Action1<Bundle> function) {
         trySubscription(sku, iabHelper, baseActivity, function);
     }
 
     public void tryPurchaseItem(IapActivity iapActivity, String sku, IabHelper.OnIabPurchaseFinishedListener listener, Intent data) throws IabHelper.IabAsyncInProgressException {
-        doSetupBilling(Collections.singletonList(sku), iapActivity, this, iabHelper, new Function<Pair<Inventory, List<Purchase>>>() {
+        doSetupBilling(Collections.singletonList(sku), iapActivity, this, iabHelper, new rx.functions.Action1<Pair<Inventory, List<Purchase>>>() {
             @Override
-            public void call(Pair<Inventory, List<Purchase>> result) throws StockDataException {
+            public void call(Pair<Inventory, List<Purchase>> result) {
                 if (result == null) {
-                    Log.e(TAG, "Function<Pair<Inventory, List<Purchase>>>.call() called with: result = [" + null + "]");
+                    Log.e(TAG, "rx.functions.Action1<Pair<Inventory, List<Purchase>>>.call() called with: result = [" + null + "]");
                     listener.onIabPurchaseFinished(null, null, data);
                 } else {
 
@@ -165,7 +165,7 @@ public class IapHelper {
     }
 
 
-    private static void getPurchases(List<String> skus, IapActivity baseActivity, IapHelper iapHelper, IabHelper iabHelper, Function<List<SkuDetails>> function) {
+    private static void getPurchases(List<String> skus, IapActivity baseActivity, IapHelper iapHelper, IabHelper iabHelper, rx.functions.Action1<List<SkuDetails>> function) {
         doSetupBilling(skus, baseActivity, iapHelper, iabHelper, pair -> {
             List<SkuDetails> allSkus = new ArrayList<>();
             if (pair != null) {
@@ -188,7 +188,7 @@ public class IapHelper {
         return s;
     }
 
-    private static void validateSubscription(List<String> skus, final IapActivity baseActivity, IapHelper iapHelper, IabHelper iabHelper, @NonNull final Function<String> function) {
+    private static void validateSubscription(List<String> skus, final IapActivity baseActivity, IapHelper iapHelper, IabHelper iabHelper, @NonNull final rx.functions.Action1<String> function) {
 
         doSetupBilling(skus, baseActivity, iapHelper, iabHelper, pair -> {
 
@@ -219,9 +219,6 @@ public class IapHelper {
                             try {
                                 function.call(jsonObject.getString("token"));
                                 super.onSuccess(jsonObject);
-                            } catch (StockDataException e) {
-                                e.printStackTrace();
-                                baseActivity.getUIErrorHandler().handleError(e);
                             } catch (JSONException e) {
                                 e.printStackTrace();
                                 onError(jsonObject);
@@ -242,7 +239,11 @@ public class IapHelper {
                 } else {
                     Log.e(TAG, "token\" is null at MainActivityHelper.doSetupBilling");
 
-                    checkGoogleReceipt(pair.second, baseActivity, function);
+                    try {
+                        checkGoogleReceipt(pair.second, baseActivity, function);
+                    } catch (StockDataException e) {
+                        e.printStackTrace();
+                    }
 
                 }
             }
@@ -252,7 +253,7 @@ public class IapHelper {
 
     }
 
-    private static void doSetupBilling(List<String> skus, final IapActivity baseActivity, IapHelper iapHelper, IabHelper iabHelper, final Function<Pair<Inventory, List<Purchase>>> function) {
+    private static void doSetupBilling(List<String> skus, final IapActivity baseActivity, IapHelper iapHelper, IabHelper iabHelper, final rx.functions.Action1<Pair<Inventory, List<Purchase>>> function) {
 
         if (!baseActivity.checkGooglePlaySevices()) return;
 
@@ -286,11 +287,7 @@ public class IapHelper {
                                     Log.e(TAG, "Inventory is null");
                                     baseActivity.setSubscriptionsAvailable(false);
                                     alertErrorNoPlayServices(baseActivity, function);
-                                    try {
-                                        function.call(null);
-                                    } catch (StockDataException e) {
-                                        e.printStackTrace();
-                                    }
+                                    function.call(null);
 
                                 } else {
 
@@ -323,32 +320,23 @@ public class IapHelper {
                                         try {
                                             iabHelper.consumeAsync(purchases1, (purchases2, results) -> {
                                                 Log.d(TAG, "onConsumeMultiFinished() called with: purchases2 = [" + purchases2 + "], results = [" + results + "]");
-                                                try {
 
-                                                    Log.i(TAG, "result message: " + result1.getMessage());
+                                                Log.i(TAG, "result message: " + result1.getMessage());
 
-                                                    function.call(new Pair<>(inv, purchases));
+                                                function.call(new Pair<>(inv, purchases));
 
 
-                                                } catch (StockDataException e) {
-                                                    e.printStackTrace();
-                                                }
                                             });
                                         } catch (IabHelper.IabAsyncInProgressException e) {
                                             e.printStackTrace();
                                         }
                                     } else {
 
-                                        try {
+                                        Log.i(TAG, "result message: " + result1.getMessage());
 
-                                            Log.i(TAG, "result message: " + result1.getMessage());
-
-                                            function.call(new Pair<>(inv, purchases));
+                                        function.call(new Pair<>(inv, purchases));
 
 
-                                        } catch (StockDataException e) {
-                                            e.printStackTrace();
-                                        }
                                     }
                                 }
 
@@ -476,19 +464,15 @@ public class IapHelper {
         }
     }
 
-    private static <T> void alertErrorNoPlayServices(IapActivity baseActivity, Function<T> function) {
+    private static <T> void alertErrorNoPlayServices(IapActivity baseActivity, rx.functions.Action1<T> function) {
         baseActivity.getUIErrorHandler().showAlertError("Google Play Services", baseActivity.getStringErrorNoPlayServices(), (dialog, which) -> {
-            try {
-                if (function != null)
-                    function.call(null);
-            } catch (StockDataException e) {
-                e.printStackTrace();
-            }
+            if (function != null)
+                function.call(null);
         });
 
     }
 
-    private static void launchSubscriptionPurchaseFlow(IabHelper iabHelper, IapActivity baseActivity, String sku, int requestCodeBuyCash, Function<Bundle> function) throws IabHelper.IabAsyncInProgressException {
+    private static void launchSubscriptionPurchaseFlow(IabHelper iabHelper, IapActivity baseActivity, String sku, int requestCodeBuyCash, rx.functions.Action1<Bundle> function) throws IabHelper.IabAsyncInProgressException {
 
         if (!baseActivity.isSubscriptionsAvailable()) {
             alertErrorNoPlayServices(baseActivity, function);
@@ -548,14 +532,14 @@ public class IapHelper {
                     }
 
                 }
-            } catch (IabHelper.IabAsyncInProgressException | StockDataException e) {
+            } catch (IabHelper.IabAsyncInProgressException e) {
                 e.printStackTrace();
             }
         }, null);
     }
 
 
-    private static void trySubscription(String sku, IabHelper iabHelper, IapActivity baseActivity, @NonNull Function<Bundle> function) {
+    private static void trySubscription(String sku, IabHelper iabHelper, IapActivity baseActivity, @NonNull rx.functions.Action1<Bundle> function) {
 
 
         try {
@@ -586,11 +570,7 @@ public class IapHelper {
 
                             @Override
                             public void onPostExecute() {
-                                try {
-                                    function.call(bundle);
-                                } catch (StockDataException e) {
-                                    e.printStackTrace();
-                                }
+                                function.call(bundle);
                                 super.onPostExecute();
                             }
                         });
@@ -598,6 +578,8 @@ public class IapHelper {
                         e.printStackTrace();
                         baseActivity.getUIErrorHandler().alertException(BILLING_ERROR, e.getMessage(), e, null, null);
 
+                    } catch (StockDataException e) {
+                        e.printStackTrace();
                     }
 
                 }
@@ -637,9 +619,9 @@ public class IapHelper {
         private List<ItemT> items;
         private int mCurrentItem = 0;
         private FinalT result;
-        private Function<FinalT> function;
+        private rx.functions.Action1<FinalT> function;
 
-        public AsyncQueue(List<ItemT> items, Function<FinalT> exitCallback) {
+        public AsyncQueue(List<ItemT> items, rx.functions.Action1<FinalT> exitCallback) {
             this.function = exitCallback;
             if (items == null) items = new ArrayList<>();
             this.items = items;
@@ -655,7 +637,11 @@ public class IapHelper {
 //                                                }).run();
                 run(items.get(mCurrentItem), result1 -> {
                     this.result = result1;
-                    dispatchTask();
+                    try {
+                        dispatchTask();
+                    } catch (StockDataException e) {
+                        e.printStackTrace();
+                    }
                 });
                 mCurrentItem++;
             } else {
@@ -670,15 +656,15 @@ public class IapHelper {
             dispatchTask();
         }
 
-        public abstract void run(ItemT t, @NonNull Function<FinalT> next) throws StockDataException;
+        public abstract void run(ItemT t, @NonNull rx.functions.Action1<FinalT> next) throws StockDataException;
     }
 
-    private static <T> void checkGoogleReceipt(List<Purchase> purchases, IapActivity baseActivity, Function<String> function) throws StockDataException {
+    private static <T> void checkGoogleReceipt(List<Purchase> purchases, IapActivity baseActivity, rx.functions.Action1<String> function) throws StockDataException {
 //                                    Purchase purchase1 = inv.getPurchase(Constants.SKU);
 
         new AsyncQueue<Purchase, String>(purchases, function) {
             @Override
-            public void run(@NonNull Purchase purchase, @NonNull Function<String> next) throws StockDataException {
+            public void run(@NonNull Purchase purchase, @NonNull rx.functions.Action1<String> next) throws StockDataException {
 
 //                                            if (purchase != null) {
 
@@ -696,11 +682,7 @@ public class IapHelper {
                     baseActivity.postPurchaseSubscription(data, signature, new BasicEvent<JSONObject>() {
                         @Override
                         public void onError(JSONObject jsonObject) {
-                            try {
-                                next.call(null);
-                            } catch (StockDataException e) {
-                                e.printStackTrace();
-                            }
+                            next.call(null);
                             super.onError(jsonObject);
                         }
 
@@ -710,9 +692,6 @@ public class IapHelper {
                                 if (function != null)
                                     function.call(jsonObject.getString("token"));
                                 super.onSuccess(jsonObject);
-                            } catch (StockDataException e) {
-                                e.printStackTrace();
-                                baseActivity.getUIErrorHandler().handleError(e);
                             } catch (JSONException e) {
                                 e.printStackTrace();
                                 onError(jsonObject);
