@@ -8,6 +8,8 @@ import org.json.JSONObject;
  * © 2017 Jhon Fredy Magdalena Vila
  */
 public abstract class StockDataException extends Throwable {
+    private static final String TAG = "StockDataException";
+
     public StockDataException(String message, Throwable cause) {
         super(message, cause);
     }
@@ -16,7 +18,7 @@ public abstract class StockDataException extends Throwable {
 
     @Override
     public void printStackTrace() {
-        Log.e("TwibexException", "TwibexException: " + getCode());
+        Log.e(TAG, "StockDataException: " + getCode());
 
         super.printStackTrace();
 
