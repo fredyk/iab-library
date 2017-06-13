@@ -18,6 +18,8 @@ public interface UIErrorHandler {
 
     void handleError(JSONObject jsonObject);
 
+    void showAlertCorrect(String tittle, String message, DialogInterface.OnClickListener button2Listener);
+
     void showAlertCorrect(String title, String message);
 
     void handleError(StockDataException e);
