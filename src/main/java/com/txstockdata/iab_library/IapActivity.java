@@ -30,5 +30,7 @@ public abstract class IapActivity extends AppCompatActivity
 
     public abstract IapHelper getIapHelper();
 
+    public abstract void restartApp(String action);
+
     ;
 }
