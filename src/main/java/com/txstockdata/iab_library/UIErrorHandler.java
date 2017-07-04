@@ -44,7 +44,7 @@ public interface UIErrorHandler {
 
     void handleUnknownError(Throwable e);
 
-    void handleHttpError(HttpException e, SimpleResponse simpleResponse);
+    void handleHttpErrorWithAlert(HttpException e, SimpleResponse simpleResponse);
 
     /**
      * © 2016 Jhon Fredy Magdalena Vila
