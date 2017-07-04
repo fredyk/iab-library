@@ -1,9 +1,12 @@
 package com.txstockdata.iab_library;
 
 import android.content.DialogInterface;
+import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
 
 import org.json.JSONObject;
+
+import retrofit2.HttpException;
 
 /**
  * © 2017 Jhon Fredy Magdalena Vila
@@ -31,15 +34,25 @@ public interface UIErrorHandler {
 
     void handleError(StockDataException e);
 
-    void handleError(Throwable e);
+    void handleError(Throwable e, OnProcessedErrorListener callback);
 
-    void handleError(Throwable e, DialogInterface.OnClickListener onClickListener);
+    void handleError(Throwable e, OnProcessedErrorListener callback, DialogInterface.OnClickListener onClickListener);
 
     void alertException(String code, String message, Throwable cause, JSONObject jsonObject, DialogInterface.OnClickListener onClickListener);
 
     void logException(Throwable e);
 
     void handleUnknownError(Throwable e);
+
+    void handleHttpError(HttpException e, SimpleResponse simpleResponse);
+
+    /**
+     * © 2016 Jhon Fredy Magdalena Vila
+     */
+
+    interface OnProcessedErrorListener {
+        public void onHttpError(@NonNull HttpException e, @NonNull SimpleResponse simpleResponse);
+    }
 
 
 //    public abstract void alertException(String code, String message, Throwable cause, String option2Text, View.OnClickListener option2Listener);

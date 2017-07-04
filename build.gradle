@@ -1,6 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'me.tatarka.retrolambda'
 
+def retrofit2_v = "2.2.0"
 
 android {
     compileSdkVersion 25
@@ -53,6 +54,12 @@ dependencies {
     compile(project(':trivialdrivesample')) {
         exclude group: "com.android.support"
     }
+
+    compile "com.squareup.retrofit2:retrofit:$retrofit2_v"
+    compile "com.squareup.retrofit2:converter-gson:$retrofit2_v"
+    compile "com.squareup.retrofit2:converter-scalars:$retrofit2_v"
+    compile "com.squareup.retrofit2:adapter-rxjava:$retrofit2_v"
+
 
 //    configurations.compile.exclude module "trivialdrivesample"
     compile 'io.reactivex:rxjava:1.2.1'
