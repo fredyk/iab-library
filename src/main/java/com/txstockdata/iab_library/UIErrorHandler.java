@@ -18,9 +18,9 @@ public interface UIErrorHandler {
 
     void showAlertError(String tittle, String message, DialogInterface.OnClickListener button2Listener);
 
-    void showAlertError(String tittle, String message, String button1Text, DialogInterface.OnClickListener button1Listener, DialogInterface.OnClickListener button2Listener);
+    void showAlertError(String tittle, String message, String positiveText, DialogInterface.OnClickListener button1Listener, DialogInterface.OnClickListener button2Listener);
 
-    void showAlertInfo(String tittle, String message, String button1Text, DialogInterface.OnClickListener button1Listener, String button2Text, DialogInterface.OnClickListener button2Listener);
+    void showAlertInfo(String tittle, String message, String positiveText, DialogInterface.OnClickListener positiveListener, String negativeText, DialogInterface.OnClickListener negativeListener);
 
     void logEventBuyIap();
 
