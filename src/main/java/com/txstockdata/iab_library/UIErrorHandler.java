@@ -16,9 +16,9 @@ public interface UIErrorHandler {
 
     void showAlertWarning(@StringRes int title, @StringRes int message, @StringRes int positiveText, DialogInterface.OnClickListener positiveListener, @StringRes int negativeText, DialogInterface.OnClickListener negativeListener, boolean cancelable);
 
-    void showAlertError(String tittle, String message, DialogInterface.OnClickListener button2Listener);
+    void showAlertError(String title, String message, DialogInterface.OnClickListener positiveListener, boolean cancelable);
 
-    void showAlertError(String tittle, String message, String positiveText, DialogInterface.OnClickListener button1Listener, DialogInterface.OnClickListener button2Listener);
+    void showAlertError(String tittle, String message, String positiveText, DialogInterface.OnClickListener button1Listener, DialogInterface.OnClickListener button2Listener, boolean cancelable);
 
     void showAlertInfo(String tittle, String message, String positiveText, DialogInterface.OnClickListener positiveListener, String negativeText, DialogInterface.OnClickListener negativeListener, boolean cancelable);
 
@@ -47,6 +47,8 @@ public interface UIErrorHandler {
     void handleHttpErrorWithAlert(HttpException e, SimpleResponse simpleResponse);
 
     void showAlertCorrect(@StringRes int title, @StringRes int message);
+
+    void showAlertError(@StringRes int title, @StringRes int message, DialogInterface.OnClickListener positiveListener, boolean cancelable);
 
     /**
      * © 2016 Jhon Fredy Magdalena Vila
