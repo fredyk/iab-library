@@ -36,7 +36,7 @@ public interface UIErrorHandler {
 
     void handleError(Throwable e, OnProcessedErrorListener callback);
 
-    void handleError(Throwable e, OnProcessedErrorListener callback, DialogInterface.OnClickListener onClickListener);
+    void handleError(Throwable e, OnProcessedErrorListener callback, DialogInterface.OnClickListener onClickListener, boolean cancelable);
 
     void alertException(String code, String message, Throwable cause, JSONObject jsonObject, DialogInterface.OnClickListener onClickListener);
 
