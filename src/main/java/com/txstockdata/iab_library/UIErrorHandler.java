@@ -48,7 +48,7 @@ public interface UIErrorHandler {
 
     void showAlertCorrect(@StringRes int title, @StringRes int message);
 
-    void showAlertError(@StringRes int title, @StringRes int message, int positiveText, DialogInterface.OnClickListener positiveListener, DialogInterface.OnClickListener negativeListener, boolean cancelable);
+    void showAlertError(@StringRes int title, @StringRes int message, @StringRes int positiveText, DialogInterface.OnClickListener positiveListener, DialogInterface.OnClickListener negativeListener, boolean cancelable);
 
     void logToFirebase(String tag, String s);
 
