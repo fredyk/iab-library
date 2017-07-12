@@ -36,10 +36,6 @@ interface IapRequiredOps {
 
     boolean isSubscriptionsAvailable();
 
-    void logToFirebase(String event, String s);
-
-    void logEventPurchaseSku(String sku);
-
     void restartApp();
 
     String getLanguage(Context context);
