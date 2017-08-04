@@ -44,7 +44,7 @@ public interface UIErrorHandler {
 
     void handleUnknownError(Throwable e);
 
-    void handleHttpErrorWithAlert(HttpException e, SimpleResponse simpleResponse);
+    void handleHttpErrorWithAlert(HttpException e, SimpleResponse simpleResponse, DialogInterface.OnClickListener onClickListener);
 
     void showAlertCorrect(@StringRes int title, @StringRes int message);
 
