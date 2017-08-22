@@ -34,17 +34,11 @@ public interface UIErrorHandler {
 
     void handleError(StockDataException e);
 
-    void handleError(Throwable e, OnProcessedErrorListener callback);
-
-    void handleError(Throwable e, OnProcessedErrorListener callback, DialogInterface.OnClickListener onClickListener, boolean cancelable);
-
     void alertException(String code, String message, Throwable cause, JSONObject jsonObject, DialogInterface.OnClickListener onClickListener);
 
     void logException(Throwable e);
 
     void handleUnknownError(Throwable e);
-
-    void handleHttpErrorWithAlert(HttpException e, SimpleResponse simpleResponse, DialogInterface.OnClickListener onClickListener);
 
     void showAlertCorrect(@StringRes int title, @StringRes int message);
 
@@ -52,14 +46,4 @@ public interface UIErrorHandler {
 
     void logToFirebase(String tag, String s);
 
-    /**
-     * © 2016 Jhon Fredy Magdalena Vila
-     */
-
-    interface OnProcessedErrorListener {
-        public void onHttpError(@NonNull HttpException e, @NonNull SimpleResponse simpleResponse);
-    }
-
-
-//    public abstract void alertException(String code, String message, Throwable cause, String option2Text, View.OnClickListener option2Listener);
 }
