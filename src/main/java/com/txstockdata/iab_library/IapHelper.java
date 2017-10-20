@@ -304,7 +304,8 @@ public class IapHelper {
                                             int purchaseState = purchase.getPurchaseState();
                                             Log.i(TAG, String.format("purchaseState: %d", purchaseState));
                                             purchases.add(purchase);
-
+                                            String signature = purchase.getSignature();
+                                            Log.i(TAG, String.format("IapHelper.doSetupBilling: purchase signature: %s", signature));
                                         }
                                     }
 
