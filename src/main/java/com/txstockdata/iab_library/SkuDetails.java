@@ -1,5 +1,7 @@
 package com.txstockdata.iab_library;
 
+import android.support.annotation.NonNull;
+
 import org.json.JSONException;
 
 /**
@@ -9,12 +11,14 @@ public class SkuDetails {
     private final String mSku;
     private final String mTitle;
     private final String mPrice;
+    private final String mSignature;
 
-    SkuDetails(com.example.android.trivialdrivesample.util.SkuDetails skuDetails) throws JSONException {
+    SkuDetails(@NonNull com.example.android.trivialdrivesample.util.SkuDetails skuDetails, String signature) throws JSONException {
 //        new com.example.android.trivialdrivesample.util.SkuDetails(skuDetails.getType(), skuDetails.getJsonSkuDetails());
         mSku = skuDetails.getSku();
         mTitle = skuDetails.getTitle();
         mPrice = skuDetails.getPrice();
+        mSignature = signature;
     }
 
     //    @Override
@@ -38,6 +42,7 @@ public class SkuDetails {
                 "mSku='" + mSku + '\'' +
                 ", mTitle='" + mTitle + '\'' +
                 ", mPrice='" + mPrice + '\'' +
+                ", mSignature='" + mSignature + '\'' +
                 '}';
     }
 }

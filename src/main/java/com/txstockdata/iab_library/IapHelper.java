@@ -171,7 +171,16 @@ public class IapHelper {
                 Inventory inventory = pair.first;
                 for (String sku : skus) {
                     try {
-                        allSkus.add(new com.txstockdata.iab_library.SkuDetails(inventory.getSkuDetails(sku)));
+                        String signature = null;
+                        List<Purchase> purchases = pair.second;
+                        for (Purchase purchase : purchases) {
+                            if (purchase.getSku().equals(sku))
+                                signature = purchase.getSignature();
+                        }
+
+                        com.example.android.trivialdrivesample.util.SkuDetails skuDetails = inventory.getSkuDetails(sku);
+                        if (skuDetails != null)
+                            allSkus.add(new com.txstockdata.iab_library.SkuDetails(skuDetails, signature));
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
