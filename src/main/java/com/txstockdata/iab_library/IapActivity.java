@@ -1,8 +1,8 @@
 package com.txstockdata.iab_library;
 
-import android.app.Activity;
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import static com.jhonfredy.connectionlib.mstatic.Util.showBundleInfo;
 import static com.txstockdata.iab_library.IapHelper.REQUEST_CODE_BILLING;

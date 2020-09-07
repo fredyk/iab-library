@@ -3,7 +3,6 @@ package com.txstockdata.iab_library;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Looper;
-import android.support.annotation.NonNull;
 import android.util.Log;
 import android.util.Pair;
 
@@ -20,7 +19,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import androidx.annotation.NonNull;
+import rx.functions.Action1;
+
 import static com.example.android.trivialdrivesample.util.IabHelper.ITEM_TYPE_INAPP;
+import static com.example.android.trivialdrivesample.util.IabHelper.ITEM_TYPE_SUBS;
 import static com.example.android.trivialdrivesample.util.IabHelper.RESPONSE_INAPP_PURCHASE_DATA;
 import static com.example.android.trivialdrivesample.util.IabHelper.RESPONSE_INAPP_SIGNATURE;
 import static com.jhonfredy.connectionlib.mstatic.Util.showBundleInfo;
@@ -56,8 +59,8 @@ public class IapHelper {
         validateSubscription(skus, baseActivity, this, iabHelper, function);
     }
 
-    public void trySubscription(String sku, @NonNull rx.functions.Action1<Bundle> function) {
-        trySubscription(sku, iabHelper, baseActivity, function);
+    public void trySubscription(String sku, @NonNull Action1<SkuDetails> success, Action1<Throwable> errorCb) {
+        trySubscription(sku, this, iabHelper, baseActivity, success, errorCb);
     }
 
     public void tryPurchaseItem(IapActivity iapActivity, String sku, IabHelper.OnIabPurchaseFinishedListener listener, Intent data) throws IabHelper.IabAsyncInProgressException {
@@ -171,16 +174,18 @@ public class IapHelper {
                 Inventory inventory = pair.first;
                 for (String sku : skus) {
                     try {
-                        String signature = null;
+                        Purchase purchase = null;
                         List<Purchase> purchases = pair.second;
-                        for (Purchase purchase : purchases) {
-                            if (purchase.getSku().equals(sku))
-                                signature = purchase.getSignature();
+                        for (Purchase purchase1 : purchases) {
+                            if (purchase1.getSku().equals(sku)) {
+                                purchase = purchase1;
+                            }
                         }
 
                         com.example.android.trivialdrivesample.util.SkuDetails skuDetails = inventory.getSkuDetails(sku);
-                        if (skuDetails != null)
-                            allSkus.add(new com.txstockdata.iab_library.SkuDetails(skuDetails, signature));
+                        if (skuDetails != null) {
+                            allSkus.add(new SkuDetails(skuDetails, purchase));
+                        }
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -481,79 +486,86 @@ public class IapHelper {
 
     }
 
-    private static void launchSubscriptionPurchaseFlow(IabHelper iabHelper, IapActivity baseActivity, String sku, int requestCodeBuyCash, rx.functions.Action1<Bundle> function) throws IabHelper.IabAsyncInProgressException {
+    private static void launchSubscriptionPurchaseFlow(IapHelper iapHelper, IabHelper iabHelper, IapActivity baseActivity, String sku, int requestCodeBuyCash, Action1<Bundle> function, Action1<Throwable> errorCb) throws IabHelper.IabAsyncInProgressException {
 
         if (!baseActivity.isSubscriptionsAvailable()) {
             alertErrorNoPlayServices(baseActivity, function);
             return;
         }
 
-
-        iabHelper.launchSubscriptionPurchaseFlow(baseActivity, sku, requestCodeBuyCash, (result, info, originalIntent) -> {
-            Log.i(TAG, "Purchase finished");
-            showBundleInfo(originalIntent.getExtras());
+        startSetup(iapHelper, iabHelper, iabResult -> {
             try {
-                if (result.isSuccess()) {
-                    iabHelper.consumeAsync(info, (purchase, result1) -> Log.i(TAG, "Consumed " + purchase.getOrderId()));
-                } else {
-                    Log.i(TAG, "result: " + result + ", purchase: " + info);
-                }
-                if (info != null) {
-                    String originalJson = info.getOriginalJson();
-                    if (originalJson != null) {
-                        Bundle bundle = new Bundle();
-                        bundle.putString("orignalJson", originalJson);
-//                                                                        mPresenterHelper. logToFirebase(FirebaseEvent.EVENT_BUY_IAP, (me != null) ? (me.getUsername() != null) ? me.getUsername() : "" : "");
-//                            baseActivity .getUIErrorHandler().logEvent(EventFeedback.EVENT_BUY_IAP);
-//                            try {
-//                                if (originalIntent.hasExtra(RESPONSE_INAPP_PURCHASE_DATA)) {
-//                                    JSONObject jsonObject = null;
-//                                    jsonObject = new JSONObject(originalIntent.getStringExtra(RESPONSE_INAPP_PURCHASE_DATA));
-//                                    if (jsonObject.has("orderId")) {
-                        baseActivity.getUIErrorHandler().logEventBuyIap();
-                        baseActivity.getUIErrorHandler().logEventPurchaseSku(sku);
-//                                    }
-//                                }
-//                            } catch (JSONException e) {
-//                                e.printStackTrace();
-//                                baseActivity.getUIErrorHandler().logEventBuyIap();
-//                                baseActivity.getUIErrorHandler().logEventPurchaseSku(sku);
-//                                baseActivity.getUIErrorHandler().alertException(null, null, e, null, null);
-//                            }
+                iabHelper.launchSubscriptionPurchaseFlow(baseActivity, sku, requestCodeBuyCash, (result, info, originalIntent) -> {
+                    Log.i(TAG, "Purchase finished");
+                    showBundleInfo(originalIntent.getExtras());
+                    try {
+                        if (result.isSuccess()) {
+                            iabHelper.consumeAsync(info, (purchase, result1) -> Log.i(TAG, "Consumed " + purchase.getOrderId()));
+                        } else {
+                            Log.i(TAG, "result: " + result + ", purchase: " + info);
+                        }
+                        if (info != null) {
+                            String originalJson = info.getOriginalJson();
+                            if (originalJson != null) {
+                                Bundle bundle = new Bundle();
+                                bundle.putString("orignalJson", originalJson);
+    //                                                                        mPresenterHelper. logToFirebase(FirebaseEvent.EVENT_BUY_IAP, (me != null) ? (me.getUsername() != null) ? me.getUsername() : "" : "");
+    //                            baseActivity .getUIErrorHandler().logEvent(EventFeedback.EVENT_BUY_IAP);
+    //                            try {
+    //                                if (originalIntent.hasExtra(RESPONSE_INAPP_PURCHASE_DATA)) {
+    //                                    JSONObject jsonObject = null;
+    //                                    jsonObject = new JSONObject(originalIntent.getStringExtra(RESPONSE_INAPP_PURCHASE_DATA));
+    //                                    if (jsonObject.has("orderId")) {
+                                baseActivity.getUIErrorHandler().logEventBuyIap();
+                                baseActivity.getUIErrorHandler().logEventPurchaseSku(sku);
+    //                                    }
+    //                                }
+    //                            } catch (JSONException e) {
+    //                                e.printStackTrace();
+    //                                baseActivity.getUIErrorHandler().logEventBuyIap();
+    //                                baseActivity.getUIErrorHandler().logEventPurchaseSku(sku);
+    //                                baseActivity.getUIErrorHandler().alertException(null, null, e, null, null);
+    //                            }
 
-//                            switch (sku) {
-//                                case SKU:
-//                                    baseActivity.getUIErrorHandler().logEvent(EVENT_PURCHASED_SUBSCRIPTIONS_1_MONTH);
-//                                    break;
-//                                case SKU2:
-//                                    getUIErrorHandler().logEvent(EVENT_PURCHASED_SUBSCRIPTIONS_6_MONTHS);
-//                                    break;
-//                                case SKU3:
-//                                    getUIErrorHandler().logEvent(EVENT_PURCHASED_SUBSCRIPTIONS_1_YEAR);
-////                                        getUIErrorHandler().logEvent(EVENT_SHOW_SUBSCRIPTIONS_1_YEAR);
-//                                    break;
-//                            }
+    //                            switch (sku) {
+    //                                case SKU:
+    //                                    baseActivity.getUIErrorHandler().logEvent(EVENT_PURCHASED_SUBSCRIPTIONS_1_MONTH);
+    //                                    break;
+    //                                case SKU2:
+    //                                    getUIErrorHandler().logEvent(EVENT_PURCHASED_SUBSCRIPTIONS_6_MONTHS);
+    //                                    break;
+    //                                case SKU3:
+    //                                    getUIErrorHandler().logEvent(EVENT_PURCHASED_SUBSCRIPTIONS_1_YEAR);
+    ////                                        getUIErrorHandler().logEvent(EVENT_SHOW_SUBSCRIPTIONS_1_YEAR);
+    //                                    break;
+    //                            }
 
 
-                        if (function != null)
-//                                                                            function.call(bundle);
-                            function.call(originalIntent.getExtras());
+                                if (function != null)
+    //                                                                            function.call(bundle);
+                                    function.call(originalIntent.getExtras());
+                            }
+
+                        }
+                    } catch (IabHelper.IabAsyncInProgressException e) {
+                        e.printStackTrace();
                     }
-
-                }
+                }, null);
             } catch (IabHelper.IabAsyncInProgressException e) {
                 e.printStackTrace();
+                errorCb.call(e);
             }
-        }, null);
+        });
+
     }
 
 
-    private static void trySubscription(String sku, IabHelper iabHelper, IapActivity baseActivity, @NonNull rx.functions.Action1<Bundle> function) {
+    private static void trySubscription(String sku, IapHelper iapHelper, IabHelper iabHelper, IapActivity baseActivity, @NonNull Action1<SkuDetails> success, Action1<Throwable> errorCb) {
 
 
         try {
 
-            launchSubscriptionPurchaseFlow(iabHelper, baseActivity, sku, REQUEST_CODE_BILLING, bundle -> {
+            launchSubscriptionPurchaseFlow(iapHelper, iabHelper, baseActivity, sku, REQUEST_CODE_BILLING, bundle -> {
 
                 if (bundle == null) {
                     baseActivity.getUIErrorHandler().alertException(BILLING_ERROR, null, null, null, null);
@@ -579,7 +591,15 @@ public class IapHelper {
 
                             @Override
                             public void onPostExecute() {
-                                function.call(bundle);
+                                try {
+                                    success.call(new SkuDetails(new com.example.android.trivialdrivesample.util.SkuDetails(
+                                            ITEM_TYPE_SUBS,
+                                            data.toString()),
+                                            new Purchase(ITEM_TYPE_SUBS, data.toString(), signature)
+                                    ));
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
                                 super.onPostExecute();
                             }
                         });
@@ -594,7 +614,7 @@ public class IapHelper {
                 }
 
 
-            });
+            }, errorCb);
         } catch (IabHelper.IabAsyncInProgressException e) {
             e.printStackTrace();
 //            baseActivity.getUIErrorHandler().handleError(new TwibexException(Constants.UNKNOWN_ERROR, e.getMessage(), e));
@@ -721,6 +741,54 @@ public class IapHelper {
 
             }
         }.start();
+
+
+    }
+
+    public void getSkuDetailsList(List<String> skus, Action1<List<SkuDetails>> cb) {
+        // TODO: Revisar, es nueva implementacion
+
+        if (!baseActivity.checkGooglePlaySevices()) return;
+
+        startSetup(this, iabHelper, iabResult -> {
+
+            if (!iabResult.isSuccess()) {
+
+                Log.e(TAG, "Problem setting up In-app Billing: " + iabResult);
+                alertErrorNoPlayServices(baseActivity, cb);
+
+            } else {
+
+                new Thread(() -> {
+
+                    Looper.prepare();
+
+                    try {
+                        iabHelper.queryInventoryAsync(true, Collections.emptyList(), skus, (result, inv) -> {
+                            List<SkuDetails> skuDetailses = new ArrayList<>();
+                            for (String sku : skus) {
+
+                                com.example.android.trivialdrivesample.util.SkuDetails skuDetails = inv.getSkuDetails(sku);
+
+                                Purchase purchase = inv.getPurchase(sku);
+
+                                try {
+                                    skuDetailses.add(new SkuDetails(skuDetails, purchase));
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            cb.call(skuDetailses);
+                        });
+                    } catch (IabHelper.IabAsyncInProgressException e) {
+                        e.printStackTrace();
+                        cb.call(Collections.emptyList());
+                    }
+                    Looper.loop();
+
+                }).start();
+            }
+        });
 
 
     }
