@@ -51,7 +51,7 @@ dependencies {
     compile(project(':connectionlib2-release')) {
         exclude group: "com.android.support"
     }
-    compile(project(':trivialdrivesample')) {
+    compile(project(':stockdatabasics:iab-library:trivialdrivesample')) {
         exclude group: "com.android.support"
     }
 
