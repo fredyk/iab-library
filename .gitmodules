@@ -1,0 +1,3 @@
+[submodule "trivialdrivesample"]
+	path = trivialdrivesample
+	url = https://github.com/fredyk/trivialdrivesample.git
