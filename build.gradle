@@ -5,7 +5,6 @@ def retrofit2_v = "2.2.0"
 
 android {
     compileSdkVersion 26
-    buildToolsVersion "26.0.1"
 
     defaultConfig {
         minSdkVersion 19
@@ -45,7 +44,7 @@ dependencies {
     androidTestCompile('androidx.test.espresso:espresso-core:3.1.0', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    compile 'androidx.appcompat:appcompat:1.0.0'
+    implementation 'androidx.appcompat:appcompat:1.3.0-alpha02'
     testCompile 'junit:junit:4.12'
     //    compile 'Twibex35:connectionlib2-release:unspecified'
     compile(project(':connectionlib2-release')) {
