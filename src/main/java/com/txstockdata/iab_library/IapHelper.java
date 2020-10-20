@@ -289,10 +289,10 @@ public class IapHelper {
                                 Looper looper = Looper.myLooper();
 
                                 if (looper != null) {
-                                    Log.i(TAG, String.format("quit loop: %s", looper));
+                                    Log.i(TAG, String.format(java.util.Locale.getDefault(), "quit loop: %s", looper));
                                     looper.quit();
                                 } else {
-                                    Log.i(TAG, String.format("null loop %s", "null"));
+                                    Log.i(TAG, String.format(java.util.Locale.getDefault(), "null loop %s", "null"));
                                 }
 
                                 Log.i(TAG, "onQueryInventoryFinished.result: " + result1.getMessage());
@@ -313,13 +313,13 @@ public class IapHelper {
                                         Log.i(TAG, "purchased " + sku + ": " + purchased);
 
                                         Purchase purchase = inv.getPurchase(sku);
-                                        Log.i(TAG, String.format("purchase for sku: %s, %s", sku, purchase));
+                                        Log.i(TAG, String.format(java.util.Locale.getDefault(), "purchase for sku: %s, %s", sku, purchase));
                                         if (purchase != null) {
                                             int purchaseState = purchase.getPurchaseState();
-                                            Log.i(TAG, String.format("purchaseState: %d", purchaseState));
+                                            Log.i(TAG, String.format(java.util.Locale.getDefault(), "purchaseState: %d", purchaseState));
                                             purchases.add(purchase);
                                             String signature = purchase.getSignature();
-                                            Log.i(TAG, String.format("IapHelper.doSetupBilling: purchase signature: %s", signature));
+                                            Log.i(TAG, String.format(java.util.Locale.getDefault(), "IapHelper.doSetupBilling: purchase signature: %s", signature));
                                         }
                                     }
 
@@ -424,10 +424,10 @@ public class IapHelper {
 //                                        Log.i(TAG, "purchased " + sku + ": " + purchased);
 //
 //                                        Purchase purchase = inv.getPurchase(sku);
-//                                        Log.i(TAG, String.format("purchase for sku: %s, %s", sku, purchase));
+//                                        Log.i(TAG, String.format(java.util.Locale.getDefault(), "purchase for sku: %s, %s", sku, purchase));
 //                                        if (purchase != null) {
 //                                            int purchaseState = purchase.getPurchaseState();
-//                                            Log.i(TAG, String.format("purchaseState: %d", purchaseState));
+//                                            Log.i(TAG, String.format(java.util.Locale.getDefault(), "purchaseState: %d", purchaseState));
 //                                            purchases.add(purchase);
 //                                        }
 //                                    }
@@ -659,7 +659,7 @@ public class IapHelper {
 
         private void dispatchTask() throws StockDataException {
             if (mCurrentItem < items.size()) {
-                Log.i(TAG, String.format("dispatch %d", mCurrentItem));
+                Log.i(TAG, String.format(java.util.Locale.getDefault(), "dispatch %d", mCurrentItem));
 //                                                new DispatchTask(items.get(mCurrentItem), result1 -> {
 //                                                    this.result = result1;
 //                                                    dispatchTask();
@@ -674,7 +674,7 @@ public class IapHelper {
                 });
                 mCurrentItem++;
             } else {
-                Log.i(TAG, String.format("call %s", function));
+                Log.i(TAG, String.format(java.util.Locale.getDefault(), "call %s", function));
                 function.call(result);
             }
 
@@ -697,14 +697,14 @@ public class IapHelper {
 
 //                                            if (purchase != null) {
 
-                Log.i(TAG, String.format("purchase %s, %s, %s", purchase.getOrderId(), purchase.getSku(), purchase));
+                Log.i(TAG, String.format(java.util.Locale.getDefault(), "purchase %s, %s, %s", purchase.getOrderId(), purchase.getSku(), purchase));
 
 
                 String signature = purchase.getSignature();
                 Log.i(TAG, "signature: " + signature);
 
                 String originalJson = purchase.getOriginalJson();
-                Log.i(TAG, String.format("originalJson> %s", originalJson));
+                Log.i(TAG, String.format(java.util.Locale.getDefault(), "originalJson> %s", originalJson));
                 try {
                     JSONObject data = new JSONObject(originalJson);
 
