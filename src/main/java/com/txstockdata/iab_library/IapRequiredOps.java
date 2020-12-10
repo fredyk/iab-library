@@ -4,8 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 
-import com.jhonfredy.connectionlib.event.BasicEvent;
-import com.jhonfredy.connectionlib.event.Event;
+import  com.txstockdata.base.BasicEvent;
+import  com.txstockdata.base.Event;
 
 import org.json.JSONObject;
 
