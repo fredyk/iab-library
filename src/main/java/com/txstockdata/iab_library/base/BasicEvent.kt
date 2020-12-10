@@ -1,6 +1,4 @@
-package com.txstockdata.base
-
-import  com.txstockdata.base.Event
+package com.txstockdata.iab_library.base
 
 open class BasicEvent<Communicator> : Event<Communicator> {
     private var calledPost = false
